@@ -1,0 +1,137 @@
+"""
+CP1404 Assignment 1 - Travel Tracker
+Name: Dharshana Prasad
+Date started: 20/10/24
+GitHub URL: [GitHub URL]
+"""
+
+import random
+
+# File name and status constants
+FILE_NAME = "places.csv"
+VISITED_STATUS = "v"
+NOT_VISITED_STATUS = "n"
+
+
+def read_places():
+    """Read the places from the CSV file."""
+    places_list = []
+    try:
+        with open(FILE_NAME, "r") as file:
+            for line in file:
+                name, country, priority, visited = line.strip().split(",")
+                places_list.append([name, country, int(priority), visited])
+    except FileNotFoundError:
+        print(f"Warning: {FILE_NAME} not found.")
+    return places_list
+
+
+def write_places(places_list):
+    """Write the places to the CSV file."""
+    with open(FILE_NAME, "w") as file:
+        for place in places_list:
+            file.write(f"{place[0]},{place[1]},{place[2]},{place[3]}\n")
+
+
+def display_places(places_list):
+    """Display all places, sorted by visited status and priority."""
+    unvisited_count = 0
+    places_list.sort(key=lambda x: (x[3], x[2]))
+    for index, place in enumerate(places_list, start=1):
+        marker = "*" if place[3] == NOT_VISITED_STATUS else " "
+        print(f"{marker}{index}. {place[0]:<10} in {place[1]:<15} {place[2]}")
+        if place[3] == NOT_VISITED_STATUS:
+            unvisited_count += 1
+    print(f"\n{len(places_list)} places tracked. You still want to visit {unvisited_count} places.\n")
+
+
+def get_non_empty_input(prompt):
+    """Get non-empty input from the user."""
+    user_input = input(prompt).strip()
+    while not user_input:
+        print("Input cannot be blank")
+        user_input = input(prompt).strip()
+    return user_input
+
+
+def get_valid_priority():
+    """Get a valid priority from the user."""
+    priority = input("Priority: ")
+    while not priority.isdigit() or int(priority) <= 0:
+        print("Invalid input; enter a valid number")
+        priority = input("Priority: ")
+    return int(priority)
+
+
+def add_place(places_list):
+    """Add a new place to the list."""
+    name = get_non_empty_input("Name: ")
+    country = get_non_empty_input("Country: ")
+    priority = get_valid_priority()
+
+    places_list.append([name, country, priority, NOT_VISITED_STATUS])
+    print(f"{name} in {country} (priority {priority}) added to Travel Tracker.\n")
+
+
+def mark_visited(places_list):
+    """Mark a place as visited."""
+    unvisited = [place for place in places_list if place[3] == NOT_VISITED_STATUS]
+    if not unvisited:
+        print("No unvisited places available.")
+        return
+
+    display_places(places_list)
+    selection = input("Enter the number of a place to mark as visited: ")
+    while not selection.isdigit() or int(selection) < 1 or int(selection) > len(places_list) or places_list[int(selection) - 1][3] == VISITED_STATUS:
+        print("Invalid input; enter a valid number")
+        selection = input("Enter the number of a place to mark as visited: ")
+
+    places_list[int(selection) - 1][3] = VISITED_STATUS
+    print(f"{places_list[int(selection) - 1][0]} in {places_list[int(selection) - 1][1]} marked as visited!\n")
+
+
+def recommend_place(places_list):
+    """Recommend a random unvisited place."""
+    unvisited = [place for place in places_list if place[3] == NOT_VISITED_STATUS]
+    if not unvisited:
+        print("No places left to visit!\n")
+    else:
+        suggested_place = random.choice(unvisited)
+        print(f"Not sure where to visit next? How about... {suggested_place[0]} in {suggested_place[1]}?\n")
+
+
+def main():
+    """Main function to manage the Travel Tracker."""
+    places_list = read_places()
+    print("Travel Tracker 1.0 - by [Your Name]")
+    print(f"{len(places_list)} places loaded from {FILE_NAME}\n")
+
+    menu_options = """
+Menu:
+D - Display all places
+R - Recommend a random place
+A - Add a new place
+M - Mark a place as visited
+Q - Quit
+"""
+    user_choice = ""
+    while user_choice.lower() != "q":
+        print(menu_options)
+        user_choice = input(">>> ").lower()
+        if user_choice == "d":
+            display_places(places_list)
+        elif user_choice == "r":
+            recommend_place(places_list)
+        elif user_choice == "a":
+            add_place(places_list)
+        elif user_choice == "m":
+            mark_visited(places_list)
+        elif user_choice == "q":
+            write_places(places_list)
+            print(f"{len(places_list)} places saved to {FILE_NAME}\nHave a nice day :)\n")
+        else:
+            print("Invalid menu choice\n")
+
+
+if __name__ == "__main__":
+    main()
